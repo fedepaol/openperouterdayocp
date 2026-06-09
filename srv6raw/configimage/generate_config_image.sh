@@ -5,21 +5,30 @@
 # `openshift-install agent create config-image` to produce the config-image
 # ISO that the appliance mounts at first boot.
 #
-# Usage: generate_config_image.sh [config_image_dir]
+# Usage: generate_config_image.sh <pull_secret_file> [config_image_dir]
 #
+#   pull_secret_file  Path to the pull secret JSON file (required)
 #   config_image_dir  Working directory for config-image generation
 #                     (default: ./configimage)
 #
 # The ISO is written to <config_image_dir>/agentconfig.noarch.iso
 #
-# Requires: butane
+# Requires: butane, jq, yq
 
 set -euo pipefail
 
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APPLIANCE_CACHE="${SCRIPTDIR}/../appliance/cache"
 
-config_image_dir="$(realpath "${1:-${SCRIPTDIR}/configimage}")"
+pull_secret_file="${1:-}"
+
+if [[ -z "${pull_secret_file}" || ! -f "${pull_secret_file}" ]]; then
+    echo "ERROR: Pull secret file not found: ${pull_secret_file:-<not provided>}"
+    echo "Usage: $0 <pull_secret_file> [config_image_dir]"
+    exit 1
+fi
+
+config_image_dir="$(realpath "${2:-${SCRIPTDIR}/configimage}")"
 
 # Use openshift-install from the appliance cache
 openshift_install=$(find "${APPLIANCE_CACHE}" -name 'openshift-install' -type f 2>/dev/null | head -1)
@@ -34,8 +43,11 @@ echo "Using: ${openshift_install}"
 # ============================================================
 mkdir -p "${config_image_dir}"
 
-# Copy install and agent configs
-cp "${SCRIPTDIR}/install-config.yaml" "${config_image_dir}/"
+# Generate install-config.yaml from base template with injected pull secret
+pull_secret="$(jq -c . "${pull_secret_file}")"
+yq -y ".pullSecret = $(echo "${pull_secret}" | jq -R .)" \
+    "${SCRIPTDIR}/install-config.yaml.base" > "${config_image_dir}/install-config.yaml"
+
 cp "${SCRIPTDIR}/agent-config.yaml" "${config_image_dir}/"
 
 # Remove namespace fields that cause strict diff failures

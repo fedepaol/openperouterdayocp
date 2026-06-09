@@ -20,11 +20,12 @@ SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 APPLIANCE_IMAGE="${APPLIANCE_IMAGE:-quay.io/edge-infrastructure/openshift-appliance:latest}"
 
-pull_secret_file="$1"
+pull_secret_file="${1:-}"
 ssh_key_file="${2:-}"
 
-if [[ ! -f "${pull_secret_file}" ]]; then
-    echo "ERROR: Pull secret file not found: ${pull_secret_file}"
+if [[ -z "${pull_secret_file}" || ! -f "${pull_secret_file}" ]]; then
+    echo "ERROR: Pull secret file not found: ${pull_secret_file:-<not provided>}"
+    echo "Usage: $0 <pull_secret_file> [ssh_key_file]"
     exit 1
 fi
 
