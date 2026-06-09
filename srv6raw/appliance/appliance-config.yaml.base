@@ -1,0 +1,11 @@
+apiVersion: v1beta1
+kind: ApplianceConfig
+ocpRelease:
+  version: '4.20'
+  url: registry.build10.ci.openshift.org/ci-ln-jh8x35b/release:latest
+diskSizeGB: 200
+userCorePass: core
+stopLocalRegistry: false
+additionalImages:
+  - name: quay.io/fpaoline/openperouter:latestfix1
+  - name: quay.io/mavazque/ign-converter:latest
