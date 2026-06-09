@@ -35,9 +35,6 @@ L2_GATEWAY_IP="${L2_GATEWAY_IP:-192.168.110.1/24}"
 L2_GATEWAY_IP_V6="${L2_GATEWAY_IP_V6:-fd00:110::1/64}"
 UNDERLAY_NIC="${UNDERLAY_NIC:-enp2s0}"
 
-# All master node indices (br0 last octets)
-IFS=' ' read -ra MASTER_INDICES <<< "${MASTER_INDICES:-2 3 4}"
-
 # Paths
 VARS_FILE="${VARS_FILE:-/var/lib/openperouter/vpn-setup.vars}"
 TEMPLATE_DIR="${TEMPLATE_DIR:-/etc/openperouter/templates}"
