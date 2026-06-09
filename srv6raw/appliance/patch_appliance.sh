@@ -18,7 +18,7 @@ set -euo pipefail
 
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EXTRASDIR="$(cd "${SCRIPTDIR}/../extras" && pwd)"
-RAWCONFIG_BU="${SCRIPTDIR}/../config-image-raw/openperouter-raw.bu"
+RAWCONFIG_BU="${SCRIPTDIR}/../configimage/openperouter-raw.bu"
 
 appliance_iso="$1"
 ocp_dir="$2"
