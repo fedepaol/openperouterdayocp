@@ -1,0 +1,34 @@
+apiVersion: v1
+baseDomain: example.com
+compute:
+- hyperthreading: Enabled
+  name: worker
+  replicas: 2
+  architecture: null
+controlPlane:
+  architecture: null
+  hyperthreading: Enabled
+  name: master
+  replicas: 3
+fips: false
+metadata:
+  name: sno-lab
+  namespace: cluster0
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: 192.168.110.0/24
+  serviceNetwork:
+  - 172.30.0.0/16
+  networkType: OVNKubernetes
+platform:
+  baremetal:
+    apiVIPs:
+    - 192.168.110.10
+    ingressVIPs:
+    - 192.168.110.11
+pullSecret: PULL_SECRET_PLACEHOLDER
+sshKey: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCyjrW9EiG5PG6sGGFnXLjCfjayC4j8lWueZaHCkQzhT9PG8kM4wk1rCFXdDKsxOuoiVxKKbY7D7aeoAoVWpQ4WXm5lqyQbSZA59+3bf2Y6XfKDbuId7QLnDOZUy901xnnTCDBVe6POJ4MmXnSs5hf90477p/a6bq+2UDSnuGRlde3XCZiCTziSqgFz0TKbqxVzKSHyi6Oo5HVqJTIVWyi1x5fSqlRNz2+w6FGQfi0D/hD8Hhc/zsA6f/Sx5tZkgWt9pQkZnmDtwovNfIvI8IXUxxefvPAX9MlrMp4Lsej9bIC9JUgf9epfHJWFU90WoIUfQg5ky1aWzqBLLJb5jYMC9pqj23nBBl+KD7qaXePYHNRhFE3zDe6HjuKrzp+gMyTih4hyKZvP0POdPU282QMfKd4ulBHlaG6c8AoiwfG1dyccLer5n2FFRFYRi1sL+MvvdsdClqWqt2gCprW9JNdJpxZqQM2EEwvtQnbzTq08yqv/Gbb8YgwoaopV5RFPG3f50tCxqMPliExkrqlFJMNtPOSth/Pw4UjTjTyoLNcYKMEhuhT8AKwoSclaGotRLA18X3fRznxYnUyjxkL28GBtOagGYHEPR+Cb3QP7N1eMmFYSeWEK8cNcbMPjjXndRY9lUzUnrq76upyvYO+I3ChLMzEE/Ark8j3QeAomICl0zw==
+  fpaoline@cnfdr7.telco5g.eng.rdu2.redhat.com
