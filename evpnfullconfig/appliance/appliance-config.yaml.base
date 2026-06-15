@@ -2,7 +2,7 @@ apiVersion: v1beta1
 kind: ApplianceConfig
 ocpRelease:
   version: "4.20"
-  url: registry.build10.ci.openshift.org/ci-ln-jh8x35b/release@sha256:d202697e2772836d28cbdf751093ac612f8cb70623c9e3b13442fa2a062ed3c6
+  url: quay.io/openshift-release-dev/ocp-release:4.20.25-x86_64
 diskSizeGB: 200
 userCorePass: core
 stopLocalRegistry: false
