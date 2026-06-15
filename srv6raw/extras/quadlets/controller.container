@@ -53,7 +53,8 @@ Volume=/proc:/hostproc:ro
 Volume=/run/dbus/system_bus_socket:/host/dbus/system_bus_socket:rw
 
 # Open vSwitch socket directory - for OVS integration
-# The directory is pre-created by ExecStartPre if it doesn't exist.
+# NOTE: This mount is OPTIONAL. If OVS is not installed, comment out this line.
+# To disable OVS mount: Add a '#' at the beginning of the line below.
 Volume=/var/run/openvswitch:/var/run/openvswitch:rshared
 
 # Environment variables
@@ -92,6 +93,11 @@ ExecStartPre=/usr/bin/mkdir -p /etc/perouter/frr
 ExecStartPre=/usr/bin/mkdir -p /var/lib/hostbridge
 ExecStartPre=/usr/bin/mkdir -p /var/lib/openperouter
 ExecStartPre=/usr/bin/mkdir -p /var/run/openvswitch
+
+# If a can_start.sh script is mounted, run it and wait for success.
+# This allows deferring startup until external dependencies are ready
+# (e.g., waiting for configure-ovs.sh to finish on second boot).
+ExecStartPre=/bin/bash -c 'f=/var/lib/openperouter/can_start.sh; [ ! -x "$f" ] || "$f"'
 
 [Install]
 # Automatically enable this container at boot

@@ -32,6 +32,16 @@ storage:
       overwrite: true
       contents:
         local: rawconfig/bridge-refresher.sh
+    - path: /usr/local/bin/can_start.sh
+      mode: 0755
+      overwrite: true
+      contents:
+        local: quadlets/can_start.sh
+    - path: /var/lib/openperouter/can_start.sh
+      mode: 0755
+      overwrite: true
+      contents:
+        local: quadlets/can_start.sh
     # --- Empty openpe_config.yaml (controller needs it to exist) ---
     - path: /var/lib/openperouter/configs/openpe_config.yaml
       mode: 0644
@@ -135,11 +145,12 @@ systemd:
         User=root
         Group=root
         EnvironmentFile=-/etc/openperouter/vpn-setup.env
+        ExecStartPre=/usr/local/bin/can_start.sh
         ExecStart=/usr/local/bin/setup-underlay.sh
         StandardOutput=journal
         StandardError=journal
         SyslogIdentifier=setup-underlay
-        TimeoutStartSec=180
+        TimeoutStartSec=480
         TimeoutStopSec=10
 
         [Install]

@@ -34,6 +34,9 @@ Environment=TINI_SUBREAPER=true
 # :Z = Private SELinux label (unique to this container/pod)
 Volume=frr-sockets.volume:/var/run/frr:Z
 
+# Custom daemons file (enables isisd, staticd, bfdd alongside bgpd/zebra)
+Volume=/etc/perouter/daemons:/etc/frr/daemons:Z
+
 # Additional Podman arguments not yet supported by native quadlet directives
 # --pidfile - Create PID file for controller integration
 PodmanArgs=--pidfile=/etc/perouter/frr/frr.pid
