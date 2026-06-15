@@ -86,7 +86,7 @@ if [[ -d "${EXTRASDIR}/quadlets" ]]; then
     # Stage all source files into the butane files-dir
     for f in controllerpod.pod controller.container routerpod.pod frr.container \
              reloader.container frr-sockets.volume openperouter-node-index.sh \
-             patch-installer-config.sh \
+             patch-installer-config.sh can_start.sh \
              openperouter-node-index.service \
              enable-virtual-interfaces.service; do
         cp "${EXTRASDIR}/quadlets/${f}" "${staging}/"
@@ -120,6 +120,14 @@ if [[ -d "${EXTRASDIR}/quadlets" ]]; then
       overwrite: true
       contents:
         local: openpe_config.yaml
+"
+
+    # can_start.sh -> /var/lib/openperouter/ (executable)
+    bu_files+="    - path: /var/lib/openperouter/can_start.sh
+      mode: 0755
+      overwrite: true
+      contents:
+        local: can_start.sh
 "
 
     # Systemd units (using contents_local so butane reads from files-dir)

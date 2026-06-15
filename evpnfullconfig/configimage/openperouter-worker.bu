@@ -51,6 +51,11 @@ storage:
       overwrite: true
       contents:
         local: quadlets/frr-sockets.volume
+    - path: /var/lib/openperouter/can_start.sh
+      mode: 0755
+      overwrite: true
+      contents:
+        local: quadlets/can_start.sh
 systemd:
   units:
     - name: controllerpod.service
