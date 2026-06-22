@@ -116,7 +116,8 @@ ROUTER_ID="10.0.0.${LAST_OCTET}"
 VTEP_IP="$ROUTER_ID"
 LOOPBACK_V6="fc00:0:${LAST_OCTET}::1"
 SRV6_SOURCE="fd00:${LAST_OCTET}::1"
-SRV6_PREFIX="fd00:${LAST_OCTET}::/48"
+SRV6_PREFIX="fd00:${LAST_OCTET}"
+SRV6_NODE_ID="${LAST_OCTET}"
 UNDERLAY_V6="fc00:100::${LAST_OCTET}"
 ISIS_NET="${ISIS_AREA}.0000.0000.$(printf '%04d' "${LAST_OCTET}").00"
 
@@ -143,7 +144,7 @@ log "Node index (last octet): $LAST_OCTET"
 log "  Router ID / VTEP IP: $ROUTER_ID"
 log "  Loopback IPv6:       $LOOPBACK_V6"
 log "  SRv6 source:         $SRV6_SOURCE"
-log "  SRv6 prefix:         $SRV6_PREFIX"
+log "  SRv6 locator:        $SRV6_PREFIX:$SRV6_NODE_ID::/48"
 log "  Underlay IPv6:       $UNDERLAY_V6"
 log "  ISIS NET:            $ISIS_NET"
 
@@ -238,6 +239,12 @@ inns sysctl -w net.ipv6.conf.default.seg6_enabled=1 || true
 inns sysctl -w "net.ipv6.conf.${UNDERLAY_NIC}.seg6_enabled=1" || true
 inns sysctl -w net.ipv6.conf.lo.seg6_enabled=1 || true
 
+# Create sr0 dummy interface for SRv6 SID installation in the kernel
+log "Creating sr0 dummy interface for SRv6..."
+inns ip link add sr0 type dummy 2>/dev/null || true
+inns ip link set sr0 up || true
+inns sysctl -w net.ipv6.conf.sr0.seg6_enabled=1 || true
+
 # NOTE: vrf.strict_mode and rp_filter are set in setup-network.sh
 # (after VRF creation, so the kernel module is loaded)
 
@@ -278,6 +285,7 @@ LOOPBACK_V6="$LOOPBACK_V6"
 # SRv6 addressing
 SRV6_SOURCE="$SRV6_SOURCE"
 SRV6_PREFIX="$SRV6_PREFIX"
+SRV6_NODE_ID="$SRV6_NODE_ID"
 
 # Underlay IPv6
 UNDERLAY_V6="$UNDERLAY_V6"
