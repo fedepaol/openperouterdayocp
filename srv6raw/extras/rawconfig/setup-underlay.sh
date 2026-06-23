@@ -166,9 +166,16 @@ log "Found host NIC: $UNDERLAY_NIC"
 
 NIC_IP_CIDR=$(ip -4 addr show "$UNDERLAY_NIC" | grep -oP '(?<=inet\s)\d+(\.\d+){3}/\d+' | head -1 || true)
 if [[ -z "$NIC_IP_CIDR" ]]; then
-    log "WARNING: Host NIC $UNDERLAY_NIC does not have an IP address configured"
+    log "WARNING: Host NIC $UNDERLAY_NIC does not have an IPv4 address configured"
 else
-    log "Host NIC IP address: $NIC_IP_CIDR (will be re-assigned after move)"
+    log "Host NIC IPv4 address: $NIC_IP_CIDR (will be re-assigned after move)"
+fi
+
+NIC_IP6_CIDR=$(ip -6 addr show "$UNDERLAY_NIC" scope global | grep -oP '(?<=inet6\s)[0-9a-f:]+/\d+' | head -1 || true)
+if [[ -z "$NIC_IP6_CIDR" ]]; then
+    log "WARNING: Host NIC $UNDERLAY_NIC does not have a global IPv6 address configured"
+else
+    log "Host NIC IPv6 address: $NIC_IP6_CIDR (will be re-assigned after move)"
 fi
 
 FRR_PID=$(frr_netns_pid)
@@ -198,6 +205,15 @@ if [[ -n "$NIC_IP_CIDR" ]]; then
         log "WARNING: Failed to assign IP (may already be configured)"
     }
     log "IP $NIC_IP_CIDR assigned to $UNDERLAY_NIC in FRR namespace"
+fi
+
+# Re-assign global IPv6 address
+if [[ -n "$NIC_IP6_CIDR" ]]; then
+    log "Re-assigning IPv6 $NIC_IP6_CIDR to $UNDERLAY_NIC in FRR namespace..."
+    inns ip -6 addr add "$NIC_IP6_CIDR" dev "$UNDERLAY_NIC" 2>/dev/null || {
+        log "WARNING: Failed to assign IPv6 (may already be configured)"
+    }
+    log "IPv6 $NIC_IP6_CIDR assigned to $UNDERLAY_NIC in FRR namespace"
 fi
 
 # Add IPv6 address to underlay NIC for ISIS adjacency

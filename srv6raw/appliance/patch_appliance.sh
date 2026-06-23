@@ -89,6 +89,22 @@ TOML
     done
 } > "${registries_conf}"
 
+# The appliance embeds additionalImages into its local registry but the
+# auto-generated IDMS/ITMS only cover OCP release images.  Add a mirror
+# rule so that registry.redhat.io pulls (e.g. toolbox, support-tools)
+# are served from the appliance registry.
+cat >> "${registries_conf}" <<TOML
+
+[[registry]]
+  prefix = ""
+  location = "registry.redhat.io"
+  mirror-by-digest-only = false
+
+  [[registry.mirror]]
+    location = "registry.appliance.openshift.com:22625"
+    insecure = true
+TOML
+
 if [[ -s "${registries_conf}" ]]; then
     bu_files+="    - path: /etc/containers/registries.conf.d/appliance-mirrors.conf
       mode: 0644
@@ -97,6 +113,31 @@ if [[ -s "${registries_conf}" ]]; then
         local: appliance-mirrors.conf
 "
 fi
+
+# --- Override container signature policy ---
+# The default policy.json requires GPG signatures for registry.redhat.io
+# images, but the appliance mirror copy is unsigned.
+policy_json="${staging}/appliance-policy.json"
+cat > "${policy_json}" <<'POLICY'
+{
+    "default": [{"type": "insecureAcceptAnything"}],
+    "transports": {
+        "docker": {
+            "registry.appliance.openshift.com:22625": [{"type": "insecureAcceptAnything"}],
+            "registry.redhat.io": [{"type": "insecureAcceptAnything"}]
+        },
+        "docker-daemon": {
+            "": [{"type": "insecureAcceptAnything"}]
+        }
+    }
+}
+POLICY
+bu_files+="    - path: /etc/containers/policy.json
+      mode: 0644
+      overwrite: true
+      contents:
+        local: appliance-policy.json
+"
 
 # --- Compile extras butane → ignition ---
 extras_ign="${tmpdir}/extras.ign"

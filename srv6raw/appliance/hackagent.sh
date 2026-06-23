@@ -146,6 +146,70 @@ if [ $? -ne 0 ]; then
 fi
 log "Successfully merged ignition configuration"
 
+# Inject registry.redhat.io mirror into the registries.conf so that
+# toolbox / podman run can resolve images from the appliance registry
+# after reboot (the cluster IDMS/ITMS only cover OCP release images).
+MIRROR_CONF='
+[[registry]]
+  prefix = ""
+  location = "registry.redhat.io"
+  mirror-by-digest-only = false
+
+  [[registry.mirror]]
+    location = "registry.appliance.openshift.com:22625"
+    insecure = true
+'
+MIRROR_CONF_B64=$(echo "$MIRROR_CONF" | base64 -w0)
+MIRROR_PATH="/etc/containers/registries.conf.d/appliance-redhat-mirror.conf"
+log "Injecting $MIRROR_PATH into ignition..."
+jq --arg data "$MIRROR_CONF_B64" --arg path "$MIRROR_PATH" '
+    .storage.files = (
+        [.storage.files[]? | select(.path != $path)] + [{
+            "path": $path,
+            "mode": 420,
+            "overwrite": true,
+            "contents": {
+                "source": ("data:text/plain;charset=utf-8;base64," + $data),
+                "verification": {}
+            }
+        }]
+    )
+' "$IGN_FILE" > "${IGN_FILE}.tmp" && mv "${IGN_FILE}.tmp" "$IGN_FILE"
+log "Injected registry mirror configuration"
+
+# The default policy.json requires GPG signatures for registry.redhat.io
+# images, but the appliance mirror copy is unsigned.  Override the policy
+# to accept unsigned images from the appliance registry.
+POLICY_OVERRIDE='{
+    "default": [{"type": "insecureAcceptAnything"}],
+    "transports": {
+        "docker": {
+            "registry.appliance.openshift.com:22625": [{"type": "insecureAcceptAnything"}],
+            "registry.redhat.io": [{"type": "insecureAcceptAnything"}]
+        },
+        "docker-daemon": {
+            "": [{"type": "insecureAcceptAnything"}]
+        }
+    }
+}'
+POLICY_B64=$(echo "$POLICY_OVERRIDE" | base64 -w0)
+POLICY_PATH="/etc/containers/policy.json"
+log "Injecting relaxed $POLICY_PATH into ignition..."
+jq --arg data "$POLICY_B64" --arg path "$POLICY_PATH" '
+    .storage.files = (
+        [.storage.files[]? | select(.path != $path)] + [{
+            "path": $path,
+            "mode": 420,
+            "overwrite": true,
+            "contents": {
+                "source": ("data:text/plain;charset=utf-8;base64," + $data),
+                "verification": {}
+            }
+        }]
+    )
+' "$IGN_FILE" > "${IGN_FILE}.tmp" && mv "${IGN_FILE}.tmp" "$IGN_FILE"
+log "Injected container signature policy override"
+
 # Extract arguments from journalctl, retry every 5 seconds until found
 log "Extracting coreos-installer arguments from journalctl..."
 while true; do
